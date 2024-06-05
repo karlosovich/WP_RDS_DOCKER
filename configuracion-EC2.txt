@@ -1,0 +1,92 @@
+# 1
+### docker install in EC2
+##########################
+sudo apt-get update
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo ""deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+apt-cache policy docker-ce
+sudo apt install docker-ce
+##########################
+
+# 2
+### directories
+##########################
+mkdir wordpress
+mkdir apache-php
+##########################
+
+
+# 3
+### wordpress Dockerfile in wordpress file
+##########################
+nano Dockerfile
+
+FROM wordpress:latest
+
+WORKDIR /var/www/html
+
+RUN rm -rf *
+
+COPY . /var/www/html/
+##########################
+
+
+# 4
+### apache Dockerfile in apache-php file
+######################
+nano Dockerfile
+
+FROM php:apache
+
+RUN a2enmod rewrite
+
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
+WORKDIR /var/www/html
+#######################
+
+# 5
+## Docker compose 
+##########################
+CHANGE ENDPOINT!!!!!!!!!!
+###########
+nano docker-compose.yml
+
+version: "3"
+
+services:
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: my-rds-instance.c**********.us-east-1.rds.amazonaws.com
+      WORDPRESS_DB_USER: admin
+      WORDPRESS_DB_PASSWORD: Asdf1234
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+      - wordpress_data:/var/www/html
+
+volumes:
+  wordpress_data:
+##########################
+
+
+# 6
+### builds
+##########################
+
+sudo docker build -t my-wordpress-image -f /home/ubuntu/wordpress/Dockerfile .
+sudo docker build -t my-apache-php-image -f /home/ubuntu/apache-php/Dockerfile .
+##########################
+
+# 7
+## docker deployment
+##########################
+sudo apt install docker-compose
+sudo docker-compose up -d
+##########################
+
+
